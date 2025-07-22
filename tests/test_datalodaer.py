@@ -2,7 +2,8 @@ import sys
 import pytest
 from datetime import datetime, timedelta
 
-from backtestament.data.data_loader import DataLoader
+from backtestament.data.data_loader import DataLoader, _DataFeed
+
 
 @pytest.fixture
 def single_asset() -> DataLoader:
@@ -14,6 +15,7 @@ def single_asset() -> DataLoader:
     return dl
 
 
+
 def test_load_success_single_asset(single_asset: DataLoader) -> None:
     single_asset.load()
     assert 1 == single_asset.get_num_frames()
@@ -23,6 +25,7 @@ def test_load_success_single_asset(single_asset: DataLoader) -> None:
     time_delta_expect: timedelta = date_end - date_start
     time_delta: timedelta = single_asset.get_max_time('WIN') - single_asset.get_min_time('WIN')
     assert abs((time_delta - time_delta_expect).total_seconds()) < (10 * 60)
+
 
 if __name__ == '__main__':
     sys.exit(pytest.main(__file__))
