@@ -15,9 +15,8 @@ class _DataFeed:
         df = self._merge_date_time_cols(df)
         min_time = pd.Timestamp(start)
         max_time = pd.Timestamp(end)
-        mask = (df[DATE_TIME_COL] >= max_time) & (df[DATE_TIME_COL] <= min_time)
+        mask = (df[DATE_TIME_COL] <= max_time) & (df[DATE_TIME_COL] >= min_time)
         df = df.loc[mask, :]
-        print(df[DATE_TIME_COL])
         self._df = df
 
     def data_finished(self) -> bool:
@@ -60,17 +59,29 @@ class DataLoader:
         self._last_data_timestamp = pd.Timestamp(0)
 
     def get_next_data(self) -> tuple[str, pd.Series]:
-        time_diff = pd.Timedelta.max
+        min_time_diff = pd.Timedelta.max
         ret = ("", pd.Series())
+        next_asset = ""
+        next_feed = None
+        print("starting search for next")
         for asset, feed in self._frames.items():
             if feed.data_finished():
                 continue
             diff = feed.get_next_row_timestamp() - self._last_data_timestamp
-            if diff >= time_diff:
+            if diff >= min_time_diff:
+                print("greater")
                 continue
-            time_diff = diff
-            ret = (asset, feed.get_next_row())
-            self._last_data_timestamp
+            else:
+                print("smaller")
+            print(min_time_diff)
+            print(diff)
+            next_asset = asset
+            min_time_diff = diff
+            next_feed = feed
+        if next_feed == None:
+            return ("", pd.Series())
+        self._last_data_timestamp = next_feed.get_next_row_timestamp()
+        ret = (next_asset, next_feed.get_next_row())
         return ret
 
     def get_num_frames(self) -> int:
